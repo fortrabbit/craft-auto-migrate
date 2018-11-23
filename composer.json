@@ -1,0 +1,24 @@
+{
+  "name": "fortrabbit/craft-auto-migrate",
+  "description": "Runs migrations automatically",
+  "keywords": ["composer", "development", "craftcms"],
+  "type": "composer-plugin",
+  "version": "1.0.0-beta1",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "fortrabbit\\CraftAutoMigrate\\": "src"
+    }
+  },
+  "require": {
+    "composer-plugin-api": "^1.0",
+    "craftcms/cms": "^3.0.0",
+    "vlucas/phpdotenv": "^2.5"
+  },
+  "require-dev": {
+    "composer/composer": "^1.0"
+  },
+  "extra": {
+    "class": "fortrabbit\\CraftAutoMigrate\\Plugin"
+  }
+}
