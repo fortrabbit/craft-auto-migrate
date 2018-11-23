@@ -104,6 +104,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         define('CRAFT_BASE_PATH', $root);
         define('YII_DEBUG', false);
 
+        if (!file_exists($root . '/vendor/autoload.php')) {
+            return false;
+        }
+
+        require_once $root . '/vendor/autoload.php';
+
         // dotenv?
         if (file_exists($root . '/.env')) {
             $dotenv = new Dotenv($root);
