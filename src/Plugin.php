@@ -43,8 +43,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         $this->composer = $composer;
         $this->io       = $io;
-
-        $this->bootstrapCraft();
     }
 
 
@@ -53,7 +51,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         return [
             ScriptEvents::POST_INSTALL_CMD => 'runMigration',
-            ScriptEvents::POST_UPDATE_CMD  => 'runMigration',
+            ScriptEvents::POST_UPDATE_CMD  => 'runMigration'
         ];
     }
 
@@ -62,6 +60,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function runMigration()
     {
+        $this->bootstrapCraft();
+
         if (!$this->craft instanceof Application) {
             return false;
         }
