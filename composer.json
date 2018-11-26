@@ -3,13 +3,19 @@
   "description": "Runs migrations automatically",
   "keywords": ["composer", "development", "craftcms"],
   "type": "composer-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "autoload": {
     "psr-4": {
       "fortrabbit\\CraftAutoMigrate\\": "src"
     }
   },
+  "authors": [
+    {
+      "name": "Oliver Stark",
+      "homepage": "https://www.fortrabbit.com/"
+    }
+  ],
   "require": {
     "composer-plugin-api": "^1.0",
     "craftcms/cms": "^3.0.0",

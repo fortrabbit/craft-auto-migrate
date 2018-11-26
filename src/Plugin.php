@@ -34,7 +34,20 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     protected $craft;
 
     /**
-     * Apply plugin modifications to Composer
+     * Register Composer events
+     *
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            ScriptEvents::POST_INSTALL_CMD => 'runMigration',
+            ScriptEvents::POST_UPDATE_CMD  => 'runMigration'
+        ];
+    }
+
+    /**
+     * Initialize Composer plugin
      *
      * @param Composer    $composer
      * @param IOInterface $io
@@ -43,16 +56,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         $this->composer = $composer;
         $this->io       = $io;
-    }
-
-
-
-    public static function getSubscribedEvents()
-    {
-        return [
-            ScriptEvents::POST_INSTALL_CMD => 'runMigration',
-            ScriptEvents::POST_UPDATE_CMD  => 'runMigration'
-        ];
     }
 
     /**
@@ -71,16 +74,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             return true;
         }
 
-        $this->io->write("Auto-migration [start]");
+        $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
 
         try {
             $this->craft->runAction('migrate/all', ['interactive' => 0]);
         } catch (Exception $exception) {
-            $this->io->writeError("Auto-migration [error]");
+            $this->io->writeError("Craft auto migrate [ERROR]");
             return false;
         }
 
-        $this->io->write("Auto-migration [end]");
+        $this->io->write("▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
         return true;
 
     }
@@ -90,6 +93,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function bootstrapCraft()
     {
+        // Prevent multiple execution
+        if (defined('CRAFT_BASE_PATH')) {
+            return false;
+        }
+
         // Detect the project root
         $root = $_SERVER["PWD"] ?? __DIR__;
         while (!file_exists($root . '/craft')) {
@@ -100,6 +108,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             }
         }
 
+        // Craft constants
         define('CRAFT_VENDOR_PATH', $root . '/vendor');
         define('CRAFT_BASE_PATH', $root);
         define('YII_DEBUG', false);
@@ -110,10 +119,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         require_once $root . '/vendor/autoload.php';
 
-        // dotenv?
+        // Load .env
         if (file_exists($root . '/.env')) {
             $dotenv = new Dotenv($root);
             $dotenv->load();
+        }
+
+        if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
+            $this->io->writeError('Craft auto migrate disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE');
+            return false;
         }
 
         // Bootstrap Craft
