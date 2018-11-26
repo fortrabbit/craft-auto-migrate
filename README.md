@@ -10,5 +10,5 @@ Require the package as a dependency of a plugin or in the composer.json of your 
 
 ```
 composer require fortrabbit/craft-auto-migrate
-``
-`
+```
+
