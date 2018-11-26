@@ -41,8 +41,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            ScriptEvents::POST_INSTALL_CMD => 'runMigration',
-            ScriptEvents::POST_UPDATE_CMD  => 'runMigration'
+            ScriptEvents::POST_INSTALL_CMD => 'runMigration'
         ];
     }
 
