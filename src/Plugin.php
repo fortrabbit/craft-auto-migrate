@@ -19,6 +19,8 @@ use Dotenv\Dotenv;
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
 
+    const CRAFT_VERSION_WITH_PROJECT_CONFIG_SUPPORT = '3.1.0';
+
     /**
      * @var Composer
      */
@@ -41,7 +43,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            ScriptEvents::POST_INSTALL_CMD => 'runMigration'
+            ScriptEvents::POST_INSTALL_CMD => 'runCommands'
         ];
     }
 
@@ -58,9 +60,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Run the migration only if Craft is installed
+     * Script runner
+     *
+     * Runs migrate/all only if Craft is installed
+     * Runs project-config/sync if enabled in config/general.php
      */
-    public function runMigration()
+    public function runCommands()
     {
         $this->bootstrapCraft();
 
@@ -69,20 +74,32 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         if (!$this->craft->getIsInstalled()) {
-            $this->io->writeError("Craft is not installed yet. No need to run migrations.");
+            $this->io->writeError("Craft is not installed yet. No need to run scripts.");
             return true;
         }
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
 
+        // migrate/all
         try {
             $this->craft->runAction('migrate/all', ['interactive' => 0]);
         } catch (Exception $exception) {
-            $this->io->writeError("Craft auto migrate [ERROR]");
+            $this->io->writeError("Craft auto migrate [migrate/all ERROR]");
             return false;
         }
 
+        // project-config/sync
+        if ($this->useProjectConfigFile()) {
+            try {
+                $this->craft->runAction('project-config/sync', ['interactive' => 0]);
+            } catch (Exception $exception) {
+                $this->io->writeError("Craft auto migrate [project-config/sync ERROR]");
+                return false;
+            }
+        }
+
         $this->io->write("▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
+
         return true;
 
     }
@@ -133,6 +150,27 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->craft = require $root . '/vendor/craftcms/cms/bootstrap/console.php';
 
         return true;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function useProjectConfigFile(): bool
+    {
+        if (!$this->craft instanceof Application) {
+            return false;
+        }
+        if (version_compare($this->craft->getVersion(), self::CRAFT_VERSION_WITH_PROJECT_CONFIG_SUPPORT) < 0) {
+            return false;
+        }
+        if (!$this->craft->getConfig()->getGeneral()->hasProperty('useProjectConfigFile')) {
+            return false;
+        }
+        if ($this->craft->getConfig()->getGeneral()->useProjectConfigFile) {
+            return true;
+        }
+
+        return false;
     }
 
 }
