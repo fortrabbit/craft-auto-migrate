@@ -9,7 +9,6 @@ use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
 use craft\console\Application;
 use yii\console\Exception;
-use Dotenv\Dotenv;
 
 /**
  * Class Plugin
@@ -137,9 +136,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         // Load .env
         if (file_exists($root . '/.env')) {
-            $dotenv = (method_exists('DotEnv\DotEnv', 'create'))
-                ? DotEnv\DotEnv::create($root)
-                : new Dotenv\Dotenv($root);
+            $dotenv = (method_exists('\Dotenv\Dotenv', 'create'))
+                ? \Dotenv\Dotenv::create($root)
+                : new \Dotenv\Dotenv($root);
             $dotenv->load();
         }
 
