@@ -137,7 +137,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         // Load .env
         if (file_exists($root . '/.env')) {
-            $dotenv = new Dotenv($root);
+            $dotenv = (method_exists('DotEnv\DotEnv', 'create'))
+                ? DotEnv\DotEnv::create($root)
+                : new Dotenv\Dotenv($root);
             $dotenv->load();
         }
 
