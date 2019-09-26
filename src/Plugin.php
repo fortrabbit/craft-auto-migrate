@@ -8,6 +8,7 @@ use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
+use Composer\Util\ProcessExecutor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
@@ -76,31 +77,32 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
 
+        $cmd = new CraftCommand(
+            "migrate/all",
+            new ProcessExecutor($this->io)
+        );
 
-        // migrate/all
-        try {
-            $cmd = new CraftCommand("migrate/all");
-
-            $cmd->run();
+        if ($cmd->run()) {
             $this->io->write($cmd->getOutput());
-
-        } catch (ProcessFailedException $exception) {
+        } else {
             $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all ERROR]");
-            $this->io->writeError($exception->getMessage());
+            $this->io->write($cmd->getErrorOutput());
             return false;
         }
 
-        // project-config/sync
+
         if ($this->hasProjectConfigFile()) {
 
-            try {
-                $cmd = new CraftCommand("project-config/sync");
-                $cmd->run();
-                $this->io->write($cmd->getOutput());
+            $cmd = new CraftCommand(
+                "project-config/sync",
+                new ProcessExecutor($this->io)
+            );
 
-            } catch (ProcessFailedException $exception) {
+            if ($cmd->run()) {
+                $this->io->write($cmd->getOutput());
+            } else {
                 $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync ERROR]");
-                $this->io->writeError($exception->getMessage());
+                $this->io->write($cmd->getErrorOutput());
                 return false;
             }
         }
@@ -108,7 +110,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->io->write("▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
 
         return true;
-
     }
 
 
@@ -119,8 +120,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function isCraftInstalled()
     {
-        $command = new CraftCommand(["migrate/all", "--help", "--color=0"]);
-        $command->run();
+        $command = new CraftCommand(["migrate/all", "--help", "--color=0"], new ProcessExecutor($this->io));
+
+        if (true !== $command->run()) {
+            return false;
+        }
 
         if (stristr($command->getOutput(), self::CRAFT_NOT_INSTALLED_MESSAGE)) {
             return false;

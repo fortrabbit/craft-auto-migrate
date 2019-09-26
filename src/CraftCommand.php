@@ -3,8 +3,8 @@
 namespace fortrabbit\CraftAutoMigrate;
 
 use Composer\Factory;
+use Composer\Util\ProcessExecutor;
 use Symfony\Component\Process\PhpExecutableFinder;
-use Symfony\Component\Process\Process;
 
 /**
  * Class CraftCommand
@@ -17,13 +17,16 @@ class CraftCommand
     private $args = [];
 
     /**
-     * @var Process
+     * @var ProcessExecutor
      */
     private $process;
 
-    public function __construct($args = [])
+    private $output;
+
+    public function __construct($args = [], ProcessExecutor $process)
     {
-        $this->args = $args;
+        $this->args    = $args;
+        $this->process = $process;
     }
 
 
@@ -54,14 +57,12 @@ class CraftCommand
     /**
      * Run Craft command
      */
-    public function run()
+    public function run(): bool
     {
         $command       = sprintf("%s %s", self::getCraftCommand(), implode(" ", $this->args));
-        $this->process = method_exists(Process::class, 'fromShellCommandline')
-            ? Process::fromShellCommandline($command)
-            : new Process(explode(" ", $command));
+        $exitCode = $this->process->execute($command, $this->output);
 
-        $this->process->mustRun();
+        return ($exitCode === 0) ? true : false;
     }
 
     /**
@@ -71,7 +72,17 @@ class CraftCommand
      */
     public function getOutput(): string
     {
-        return trim($this->process->getOutput());
+        return trim($this->output);
+    }
+
+    /**
+     * Error output of command
+     *
+     * @return string
+     */
+    public function getErrorOutput(): string
+    {
+        return $this->process->getErrorOutput();
     }
 
 
