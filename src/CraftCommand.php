@@ -57,7 +57,10 @@ class CraftCommand
     public function run()
     {
         $command       = sprintf("%s %s", self::getCraftCommand(), implode(" ", $this->args));
-        $this->process = new Process(explode(" ", $command));
+        $this->process = method_exists(Process::class, 'fromShellCommandline')
+            ? Process::fromShellCommandline($command)
+            : new Process(explode(" ", $command));
+
         $this->process->mustRun();
     }
 
