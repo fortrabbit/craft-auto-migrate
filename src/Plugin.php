@@ -64,7 +64,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function runCommands()
     {
         if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
-            $this->io->writeError('Craft auto migrate disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE');
+            $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE");
             return true;
         }
 
