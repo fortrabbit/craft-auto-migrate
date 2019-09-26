@@ -9,7 +9,6 @@ use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
 use Composer\Util\ProcessExecutor;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
  * Class Plugin
@@ -31,7 +30,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * @var IOInterface
      */
     protected $io;
-
 
     /**
      * Register Composer events
@@ -78,7 +76,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
 
         $cmd = new CraftCommand(
-            "migrate/all",
+            ["migrate/all"],
             new ProcessExecutor($this->io)
         );
 
@@ -94,7 +92,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         if ($this->hasProjectConfigFile()) {
 
             $cmd = new CraftCommand(
-                "project-config/sync",
+                ["project-config/sync"],
                 new ProcessExecutor($this->io)
             );
 
