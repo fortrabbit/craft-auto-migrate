@@ -4,11 +4,11 @@ namespace fortrabbit\CraftAutoMigrate;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\ScriptEvents;
-use craft\console\Application;
-use yii\console\Exception;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
  * Class Plugin
@@ -20,6 +20,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     const CRAFT_VERSION_WITH_PROJECT_CONFIG_SUPPORT = '3.1.0';
 
+    const CRAFT_NOT_INSTALLED_MESSAGE = 'Craft isn’t installed yet!';
+
     /**
      * @var Composer
      */
@@ -29,10 +31,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected $io;
 
-    /**
-     * @var \craft\console\Application
-     */
-    protected $craft;
 
     /**
      * Register Composer events
@@ -66,33 +64,43 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function runCommands()
     {
-        $this->bootstrapCraft();
-
-        if (!$this->craft instanceof Application) {
-            return false;
+        if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
+            $this->io->writeError('Craft auto migrate disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE');
+            return true;
         }
 
-        if (!$this->craft->getIsInstalled()) {
-            $this->io->writeError("Craft is not installed yet. No need to run scripts.");
+        if (!$this->isCraftInstalled()) {
+            $this->io->writeError('Craft is not installed yet. Skipping migration.');
             return true;
         }
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
 
+
         // migrate/all
         try {
-            $this->craft->runAction('migrate/all', ['interactive' => 0]);
-        } catch (Exception $exception) {
-            $this->io->writeError("Craft auto migrate [migrate/all ERROR]");
+            $cmd = new CraftCommand("migrate/all");
+
+            $cmd->run();
+            $this->io->write($cmd->getOutput());
+
+        } catch (ProcessFailedException $exception) {
+            $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all ERROR]");
+            $this->io->writeError($exception->getMessage());
             return false;
         }
 
         // project-config/sync
-        if ($this->useProjectConfigFile()) {
+        if ($this->hasProjectConfigFile()) {
+
             try {
-                $this->craft->runAction('project-config/sync', ['interactive' => 0]);
-            } catch (Exception $exception) {
-                $this->io->writeError("Craft auto migrate [project-config/sync ERROR]");
+                $cmd = new CraftCommand("project-config/sync");
+                $cmd->run();
+                $this->io->write($cmd->getOutput());
+
+            } catch (ProcessFailedException $exception) {
+                $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync ERROR]");
+                $this->io->writeError($exception->getMessage());
                 return false;
             }
         }
@@ -103,75 +111,34 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     }
 
+
     /**
+     * Checks if Craft is installed by showing a help command
+     *
      * @return bool
      */
-    protected function bootstrapCraft()
+    protected function isCraftInstalled()
     {
-        // Prevent multiple execution
-        if (defined('CRAFT_BASE_PATH')) {
+        $command = new CraftCommand(["migrate/all", "--help", "--color=0"]);
+        $command->run();
+
+        if (stristr($command->getOutput(), self::CRAFT_NOT_INSTALLED_MESSAGE)) {
             return false;
         }
-
-        // Detect the project root
-        $root = $_SERVER["PWD"] ?? __DIR__;
-        while (!file_exists($root . '/craft')) {
-            $root .= '/..';
-            if (substr_count($root, '/..') > 5) {
-                $this->io->writeError('Unable to find the project root: craft binary is missing.');
-                return false;
-            }
-        }
-
-        // Craft constants
-        define('CRAFT_VENDOR_PATH', $root . '/vendor');
-        define('CRAFT_BASE_PATH', $root);
-        define('YII_DEBUG', false);
-
-        if (!file_exists($root . '/vendor/autoload.php')) {
-            return false;
-        }
-
-        require_once $root . '/vendor/autoload.php';
-
-        // Load .env
-        if (file_exists($root . '/.env')) {
-            $dotenv = (method_exists('\Dotenv\Dotenv', 'create'))
-                ? \Dotenv\Dotenv::create($root)
-                : new \Dotenv\Dotenv($root);
-            $dotenv->load();
-        }
-
-        if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
-            $this->io->writeError('Craft auto migrate disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE');
-            return false;
-        }
-
-        // Bootstrap Craft
-        $this->craft = require $root . '/vendor/craftcms/cms/bootstrap/console.php';
 
         return true;
     }
 
+
     /**
      * @return bool
      */
-    protected function useProjectConfigFile(): bool
+    protected function hasProjectConfigFile(): bool
     {
-        if (!$this->craft instanceof Application) {
-            return false;
-        }
-        if (version_compare($this->craft->getVersion(), self::CRAFT_VERSION_WITH_PROJECT_CONFIG_SUPPORT) < 0) {
-            return false;
-        }
-        if (!$this->craft->getConfig()->getGeneral()->hasProperty('useProjectConfigFile')) {
-            return false;
-        }
-        if ($this->craft->getConfig()->getGeneral()->useProjectConfigFile) {
-            return true;
-        }
+        $projectRoot  = realpath(dirname(Factory::getComposerFile()));
+        $pathToConfig = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project.yaml';
 
-        return false;
+        return (file_exists($pathToConfig)) ? true : false;
     }
 
 }
