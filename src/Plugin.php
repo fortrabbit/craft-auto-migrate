@@ -69,7 +69,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         if (!$this->isCraftInstalled()) {
-            $this->io->writeError('Craft is not installed yet. Skipping migration.');
+            $this->io->writeError(PHP_EOL . "▶ <info>Craft is not installed yet.</info> Skip migration.");
             return true;
         }
 
@@ -81,10 +81,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         );
 
         if ($cmd->run()) {
-            $this->io->write($cmd->getOutput());
+            $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all]");
+            $this->io->write(PHP_EOL . $cmd->getOutput());
         } else {
             $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all ERROR]");
-            $this->io->write($cmd->getErrorOutput());
+            $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
             return false;
         }
 
@@ -97,15 +98,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             );
 
             if ($cmd->run()) {
-                $this->io->write($cmd->getOutput());
+                $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync]");
+                $this->io->write(PHP_EOL . $cmd->getOutput());
             } else {
                 $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync ERROR]");
-                $this->io->write($cmd->getErrorOutput());
+                $this->io->writeError(PHP_EOL .$cmd->getErrorOutput());
                 return false;
             }
         }
 
-        $this->io->write("▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
+        $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
 
         return true;
     }
