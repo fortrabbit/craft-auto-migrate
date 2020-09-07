@@ -3,7 +3,7 @@
   "description": "Runs migrations automatically",
   "keywords": ["composer", "development", "craftcms"],
   "type": "composer-plugin",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "autoload": {
     "psr-4": {

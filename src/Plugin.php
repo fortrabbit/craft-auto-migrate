@@ -46,13 +46,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * Initialize Composer plugin
      *
-     * @param Composer    $composer
+     * @param Composer $composer
      * @param IOInterface $io
      */
     public function activate(Composer $composer, IOInterface $io)
     {
         $this->composer = $composer;
-        $this->io       = $io;
+        $this->io = $io;
     }
 
     /**
@@ -64,7 +64,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public function runCommands()
     {
         if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
-            $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE");
+            $this->io->write(
+                PHP_EOL . "▶ <info>Craft auto migrate</info> disabled by ENV var: DISABLE_CRAFT_AUTOMIGRATE"
+            );
             return true;
         }
 
@@ -91,7 +93,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
 
         if ($this->hasProjectConfigFile()) {
-
             $cmd = new CraftCommand(
                 ["project-config/sync"],
                 new ProcessExecutor($this->io)
@@ -102,7 +103,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 $this->io->write(PHP_EOL . $cmd->getOutput());
             } else {
                 $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync ERROR]");
-                $this->io->writeError(PHP_EOL .$cmd->getErrorOutput());
+                $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
                 return false;
             }
         }
@@ -139,10 +140,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected function hasProjectConfigFile(): bool
     {
-        $projectRoot  = realpath(dirname(Factory::getComposerFile()));
-        $pathToConfig = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project.yaml';
+        $projectRoot = realpath(dirname(Factory::getComposerFile()));
+        $pathToConfigFile = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project.yaml';
+        $pathToConfigDir = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project';
 
-        return (file_exists($pathToConfig)) ? true : false;
+        return (file_exists($pathToConfigFile) || is_dir($pathToConfigDir)) ? true : false;
     }
 
 }
