@@ -147,4 +147,19 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         return (file_exists($pathToConfigFile) || is_dir($pathToConfigDir)) ? true : false;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function deactivate(Composer $composer, IOInterface $io)
+    {
+        // nothing to do
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function uninstall(Composer $composer, IOInterface $io)
+    {
+        // nothing to do
+    }
 }
