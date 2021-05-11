@@ -59,7 +59,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Script runner
      *
      * Runs migrate/all only if Craft is installed
-     * Runs project-config/sync if enabled in config/general.php
+     * Runs project-config/apply if enabled in config/general.php
      */
     public function runCommands()
     {
@@ -94,15 +94,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         if ($this->hasProjectConfigFile()) {
             $cmd = new CraftCommand(
-                ["project-config/sync"],
+                ["project-config/apply"],
                 new ProcessExecutor($this->io)
             );
 
             if ($cmd->run()) {
-                $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync]");
+                $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply]");
                 $this->io->write(PHP_EOL . $cmd->getOutput());
             } else {
-                $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/sync ERROR]");
+                $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply ERROR]");
                 $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
                 return false;
             }
