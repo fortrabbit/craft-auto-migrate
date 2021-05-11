@@ -3,7 +3,6 @@
   "description": "Runs migrations automatically",
   "keywords": ["composer", "development", "craftcms"],
   "type": "composer-plugin",
-  "version": "2.2.0",
   "license": "MIT",
   "autoload": {
     "psr-4": {
@@ -17,10 +16,10 @@
     }
   ],
   "require": {
-    "composer-plugin-api": "^1.0 || ^2.0"
+    "composer-plugin-api": "^1.0 || ^2.0.13"
   },
   "require-dev": {
-    "composer/composer": "^1.0 || ^2.0"
+    "composer/composer": "^1.0 || ^2.0.13"
   },
   "extra": {
     "class": "fortrabbit\\CraftAutoMigrate\\Plugin"
