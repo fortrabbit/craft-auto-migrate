@@ -1,4 +1,4 @@
-## Craft Automigrate
+## Craft Auto Migrate
 
 A Composer plugin that runs `craft migrate/all` and `craft project-config/apply` after `composer install`, **if Craft is installed**.
 
