@@ -17,26 +17,16 @@ use Composer\Util\ProcessExecutor;
  */
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
-
-    const CRAFT_VERSION_WITH_PROJECT_CONFIG_SUPPORT = '3.1.0';
-
     const CRAFT_NOT_INSTALLED_MESSAGE = 'Craft isn’t installed yet!';
 
-    /**
-     * @var Composer
-     */
-    protected $composer;
-    /**
-     * @var IOInterface
-     */
-    protected $io;
+    protected Composer $composer;
+
+    protected IOInterface $io;
 
     /**
      * Register Composer events
-     *
-     * @return array
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             ScriptEvents::POST_INSTALL_CMD => 'runCommands'
@@ -45,11 +35,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     /**
      * Initialize Composer plugin
-     *
-     * @param Composer $composer
-     * @param IOInterface $io
      */
-    public function activate(Composer $composer, IOInterface $io)
+    public function activate(Composer $composer, IOInterface $io): void
     {
         $this->composer = $composer;
         $this->io = $io;
@@ -61,7 +48,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      * Runs migrate/all only if Craft is installed
      * Runs project-config/apply if enabled in config/general.php
      */
-    public function runCommands()
+    public function runCommands(): bool
     {
         if (getenv('DISABLE_CRAFT_AUTOMIGRATE') == 1) {
             $this->io->write(
@@ -76,11 +63,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
-
-        $cmd = new CraftCommand(
-            ["migrate/all"],
-            new ProcessExecutor($this->io)
-        );
+        $cmd = new CraftCommand(["migrate/all"], new ProcessExecutor($this->io));
 
         if ($cmd->run()) {
             $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all]");
@@ -93,10 +76,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
 
         if ($this->hasProjectConfigFile()) {
-            $cmd = new CraftCommand(
-                ["project-config/apply"],
-                new ProcessExecutor($this->io)
-            );
+            $args = ["project-config/apply"];
+
+            if (getenv('PROJECT_CONFIG_FORCE_APPLY') == 1) {
+                $args[] = '--force';
+            }
+
+            $cmd = new CraftCommand($args, new ProcessExecutor($this->io));
 
             if ($cmd->run()) {
                 $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply]");
@@ -116,10 +102,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
     /**
      * Checks if Craft is installed by showing a help command
-     *
-     * @return bool
      */
-    protected function isCraftInstalled()
+    protected function isCraftInstalled(): bool
     {
         $command = new CraftCommand(["migrate/all", "--help", "--color=0"], new ProcessExecutor($this->io));
 
@@ -144,7 +128,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $pathToConfigFile = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project.yaml';
         $pathToConfigDir = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project';
 
-        return (file_exists($pathToConfigFile) || is_dir($pathToConfigDir)) ? true : false;
+        return file_exists($pathToConfigFile) || is_dir($pathToConfigDir);
     }
 
     /**

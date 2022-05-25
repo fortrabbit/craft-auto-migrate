@@ -14,3 +14,9 @@ composer require fortrabbit/craft-auto-migrate
 ### Disable
 
 By setting the ENV var `DISABLE_CRAFT_AUTOMIGRATE=1` you disable the plugin.
+
+
+### Project Config
+
+By setting the ENV var `PROJECT_CONFIG_FORCE_APPLY=1` the `project-config/apply` command is executed with the `--force` flag.
+

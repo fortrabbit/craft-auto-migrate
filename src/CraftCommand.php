@@ -6,34 +6,23 @@ use Composer\Factory;
 use Composer\Util\ProcessExecutor;
 use Symfony\Component\Process\PhpExecutableFinder;
 
-/**
- * Class CraftCommand
- *
- * @package fortrabbit\CraftAutoMigrate
- */
 class CraftCommand
 {
+    private array $args = [];
 
-    private $args = [];
-
-    /**
-     * @var ProcessExecutor
-     */
-    private $process;
+    private ProcessExecutor $process;
 
     private $output;
 
-    public function __construct($args = [], ProcessExecutor $process)
+    public function __construct(array $args, ProcessExecutor $process)
     {
-        $this->args    = $args;
+        $this->args = $args;
         $this->process = $process;
     }
 
 
     /**
      * Full path to craft command
-     *
-     * @return string
      */
     public static function getCraftCommand(): string
     {
@@ -62,13 +51,11 @@ class CraftCommand
         $command       = sprintf("%s %s", self::getCraftCommand(), implode(" ", $this->args));
         $exitCode = $this->process->execute($command, $this->output);
 
-        return ($exitCode === 0) ? true : false;
+        return $exitCode === 0;
     }
 
     /**
      * Output of command
-     *
-     * @return string
      */
     public function getOutput(): string
     {
@@ -77,13 +64,9 @@ class CraftCommand
 
     /**
      * Error output of command
-     *
-     * @return string
      */
     public function getErrorOutput(): string
     {
         return $this->process->getErrorOutput();
     }
-
-
 }
