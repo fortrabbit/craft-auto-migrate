@@ -75,7 +75,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
 
-        if ($this->hasProjectConfigFile()) {
+        if ($this->hasProjectConfig()) {
             $args = ["project-config/apply"];
 
             if (getenv('PROJECT_CONFIG_FORCE_APPLY') == 1) {
@@ -87,6 +87,16 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             if ($cmd->run()) {
                 $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply]");
                 $this->io->write(PHP_EOL . $cmd->getOutput());
+
+                // Remove project.yaml during deployment (non-interactive mode)
+                if ($this->shouldRemoveProjectConfigAfterApply()) {
+                    $projectConfigFile = $this->getProjectConfigFile();
+                    if (is_string($projectConfigFile) && unlink($projectConfigFile)) {
+                        $this->io->write(PHP_EOL . "$projectConfigFile removed");
+                    }
+                }
+
+
             } else {
                 $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply ERROR]");
                 $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
@@ -99,6 +109,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         return true;
     }
 
+    protected function shouldRemoveProjectConfigAfterApply(): bool
+    {
+        if (getenv('KEEP_PROJECT_CONFIG') == 1 || $this->io->isInteractive() === true) {
+            return false;
+        }
+
+        return true;
+    }
 
     /**
      * Checks if Craft is installed by showing a help command
@@ -119,16 +137,24 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
 
-    /**
-     * @return bool
-     */
-    protected function hasProjectConfigFile(): bool
+    protected function hasProjectConfig(): bool
     {
         $projectRoot = realpath(dirname(Factory::getComposerFile()));
-        $pathToConfigFile = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project.yaml';
-        $pathToConfigDir = $projectRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'project';
+        $pathToConfigFile = implode(DIRECTORY_SEPARATOR, [$projectRoot, 'config', 'project', 'project.yaml']);
+        $pathToConfigDir = implode(DIRECTORY_SEPARATOR, [$projectRoot, 'config', 'project']);
 
         return file_exists($pathToConfigFile) || is_dir($pathToConfigDir);
+    }
+
+    protected function getProjectConfigFile(): ?string
+    {
+        $projectRoot = realpath(dirname(Factory::getComposerFile()));
+        $projectConfigFile = implode(DIRECTORY_SEPARATOR, [$projectRoot, 'config', 'project', 'project.yaml']);
+
+        return file_exists($projectConfigFile)
+            ? $projectConfigFile
+            : null;
+
     }
 
     /**
