@@ -20,3 +20,6 @@ By setting the ENV var `DISABLE_CRAFT_AUTOMIGRATE=1` you disable the plugin.
 
 By setting the ENV var `PROJECT_CONFIG_FORCE_APPLY=1` the `project-config/apply` command is executed with the `--force` flag.
 
+The file `config/project/project.yaml` will be removed after applying, unless you set the ENV var `KEEP_PROJECT_CONFIG=1` or composer install is running locally (interactive mode).
+This behaviour was added in `2.5.0` to prevent re-applying the Project Config in the Craft CP.
+
