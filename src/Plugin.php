@@ -45,8 +45,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     /**
      * Script runner
      *
-     * Runs migrate/all only if Craft is installed
-     * Runs project-config/apply if enabled in config/general.php
+     * Runs up command if Craft is installed
      */
     public function runCommands(): bool
     {
@@ -63,20 +62,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         }
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [START]");
-        $cmd = new CraftCommand(["migrate/all"], new ProcessExecutor($this->io));
-
-        if ($cmd->run()) {
-            $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all]");
-            $this->io->write(PHP_EOL . $cmd->getOutput());
-        } else {
-            $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [migrate/all ERROR]");
-            $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
-            return false;
-        }
-
 
         if ($this->hasProjectConfig()) {
-            $args = ["project-config/apply"];
+            $args = ["up"];
 
             if (getenv('PROJECT_CONFIG_FORCE_APPLY') == 1) {
                 $args[] = '--force';
@@ -85,7 +73,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             $cmd = new CraftCommand($args, new ProcessExecutor($this->io));
 
             if ($cmd->run()) {
-                $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply]");
+                $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [up]");
                 $this->io->write(PHP_EOL . $cmd->getOutput());
 
                 // Remove project.yaml during deployment (non-interactive mode)
@@ -98,10 +86,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
 
             } else {
-                $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [project-config/apply ERROR]");
+                $this->io->writeError(PHP_EOL . "▶ <info>Craft auto migrate</info> [up ERROR]");
                 $this->io->writeError(PHP_EOL . $cmd->getErrorOutput());
                 return false;
             }
+        } else {
+            $this->io->write(PHP_EOL . "▶ <info>Project Config not found.</info>");
         }
 
         $this->io->write(PHP_EOL . "▶ <info>Craft auto migrate</info> [END]" . PHP_EOL);
