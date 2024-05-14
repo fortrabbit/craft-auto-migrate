@@ -23,3 +23,12 @@ By setting the ENV var `PROJECT_CONFIG_FORCE_APPLY=1` the `project-config/apply`
 The file `config/project/project.yaml` will be removed after applying, unless you set the ENV var `KEEP_PROJECT_CONFIG=1` or composer install is running locally (interactive mode).
 This behaviour was added in `2.5.0` to prevent re-applying the Project Config in the Craft CP.
 
+
+### Troubleshooting
+In case you get an `Your project config YAML files contain pending changes` error after a deploy or during first-time setup, try the following to resolve the issue:
+- If you are on Craft 3, set `KEEP_PROJECT_CONFIG=1` otherwise leave it as the default `0`
+- Delete the local and remote copies of the following files:
+  ```
+  storage/config-deltas/*.yaml*
+  storage/config-backups/*.yaml*
+  ```
