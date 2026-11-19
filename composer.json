@@ -1,6 +1,12 @@
 {
   "name": "fortrabbit/craft-auto-migrate",
   "description": "Runs migrations automatically",
+  "homepage": "https://www.fortrabbit.com/software/craft-cms",
+  "support": {
+    "docs": "https://github.com/fortrabbit/craft-auto-migrate/blob/master/README.md",
+    "source": "https://github.com/fortrabbit/craft-auto-migrate",
+    "issues": "https://github.com/fortrabbit/craft-auto-migrate/issues"
+  },
   "keywords": ["composer", "development", "craftcms"],
   "type": "composer-plugin",
   "license": "MIT",
