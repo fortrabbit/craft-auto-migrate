@@ -3,9 +3,8 @@
   "description": "Runs migrations automatically",
   "homepage": "https://www.fortrabbit.com/software/craft-cms",
   "support": {
-    "docs": "https://github.com/fortrabbit/craft-auto-migrate/blob/master/README.md",
-    "source": "https://github.com/fortrabbit/craft-auto-migrate",
-    "issues": "https://github.com/fortrabbit/craft-auto-migrate/issues"
+    "email": "info@fortrabbit.com",
+    "docs": "https://github.com/fortrabbit/craft-auto-migrate/blob/master/README.md"
   },
   "keywords": ["composer", "development", "craftcms"],
   "type": "composer-plugin",
