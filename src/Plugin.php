@@ -119,10 +119,18 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     }
 
     /**
-     * Checks if Craft is installed by showing a help command
+     * Checks if Craft is installed with install/check (Craft 3.5 and later),
+     * or by showing a help command on older versions
      */
     protected function isCraftInstalled(): bool
     {
+        $command = new CraftCommand(["install/check", "--color=0"], new ProcessExecutor($this->io));
+        $isInstalled = $command->run();
+
+        if (preg_match('/Craft is (not )?installed/', $command->getOutput())) {
+            return $isInstalled;
+        }
+
         $command = new CraftCommand(["migrate/all", "--help", "--color=0"], new ProcessExecutor($this->io));
 
         if (true !== $command->run()) {
